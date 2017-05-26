@@ -1,0 +1,7 @@
+.nyc_output
+.tag*
+.DS_Store
+coverage
+dist
+node_modules
+npm-debug*

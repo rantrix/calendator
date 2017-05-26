@@ -1,0 +1,64 @@
+{
+  "name": "calendator",
+  "version": "1.0.0",
+  "author": "Dexter Vu",
+  "license": "MIT",
+  "description": "Give Calendator a date and it will give you a calendar (array of weeks) for the month!",
+  "main": "index.js",
+  "keywords": [
+    "calendar",
+    "date",
+    "day",
+    "month",
+    "year"
+  ],
+  "bugs": {
+    "url": "https://github.com/rantrix/calendator/issues"
+  },
+  "homepage": "https://github.com/rantrix/calendator#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:rantrix/calendator.git"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    },
+    "ghooks": {
+      "pre-commit": "npm run validate"
+    }
+  },
+  "nyc": {
+    "all": true,
+    "check-coverage": true,
+    "branches": 100,
+    "function": 100,
+    "lines": 100,
+    "statements": 100,
+    "reporter": [
+      "text",
+      "lcov"
+    ],
+    "includes": [
+      "src"
+    ]
+  },
+  "scripts": {
+    "c": "git-cz",
+    "lint": "eslint .",
+    "test": "nyc mocha *.test.js",
+    "testw": "nyc mocha -w *.test.js",
+    "validate": "npm-run-all --parallel lint test"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "commitizen": "^2.9.6",
+    "cz-conventional-changelog": "^2.0.0",
+    "eslint": "^3.19.0",
+    "eslint-config-kentcdodds": "^12.2.1",
+    "ghooks": "^2.0.0",
+    "mocha": "^3.3.0",
+    "npm-run-all": "^4.0.2",
+    "nyc": "^10.3.2"
+  }
+}
