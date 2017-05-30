@@ -1,6 +1,6 @@
 {
   "name": "calendator",
-  "version": "1.0.0",
+  "version": "1.0.0-development",
   "author": "Dexter Vu",
   "license": "MIT",
   "description": "Give Calendator a date and it will give you a calendar (array of weeks) for the month!",
@@ -18,7 +18,7 @@
   "homepage": "https://github.com/rantrix/calendator#readme",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:rantrix/calendator.git"
+    "url": "https://github.com/rantrix/calendator.git"
   },
   "config": {
     "commitizen": {
@@ -48,7 +48,8 @@
     "lint": "eslint .",
     "test": "nyc mocha *.test.js",
     "testw": "nyc mocha -w *.test.js",
-    "validate": "npm-run-all --parallel lint test"
+    "validate": "npm-run-all --parallel lint test",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -59,6 +60,7 @@
     "ghooks": "^2.0.0",
     "mocha": "^3.3.0",
     "npm-run-all": "^4.0.2",
-    "nyc": "^10.3.2"
+    "nyc": "^10.3.2",
+    "semantic-release": "^6.3.6"
   }
 }
