@@ -1,6 +1,10 @@
 # `.giveMeCalendarForDate(date) => Array`
 
-Get an array representing a calendar for the given date.
+Builds an array representing a calendar for the given date, and then caches
+the result. If the method is called again with the same date, the cached result
+will be returned instead of building it again.
+
+The method will always check the cache first before building the calendar array.
 
 #### Arguments
 

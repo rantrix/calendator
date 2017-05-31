@@ -42,6 +42,11 @@ Install node to get `npm` and then run `npm install calendator`. You can use
 
 [See above.](#the-calendator)
 
+## Caching
+
+The Calendator will only build a calendar once when you ask for a calendar, then it caches the calendar. When you ask
+for the same calendar next time, it will return the same exact calendar from it's cache.
+
 ## Tips
 
 The Calendator expects weekdays and months to start at 0. When using the
