@@ -35,18 +35,20 @@
     "lines": 100,
     "statements": 100,
     "reporter": [
-      "text",
-      "lcov"
+      "lcov",
+      "text"
     ],
     "includes": [
-      "src"
+      "./index.js"
     ]
   },
   "scripts": {
     "c": "git-cz",
     "lint": "eslint .",
+    "nyc": "nyc",
     "precommit": "npm run lint",
     "postcommit": "npm run test",
+    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "test": "nyc mocha *.test.js",
     "testw": "nyc mocha -w *.test.js",
@@ -55,6 +57,7 @@
   "devDependencies": {
     "babel-core": "^6.24.1",
     "chai": "^3.5.0",
+    "codecov": "^2.2.0",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^3.19.0",
