@@ -23,9 +23,6 @@
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
-    },
-    "ghooks": {
-      "pre-commit": "npm run validate"
     }
   },
   "nyc": {
@@ -46,18 +43,21 @@
   "scripts": {
     "c": "git-cz",
     "lint": "eslint .",
+    "precommit": "npm run lint",
+    "postcommit": "npm run test",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "test": "nyc mocha *.test.js",
     "testw": "nyc mocha -w *.test.js",
-    "validate": "npm-run-all --parallel lint test",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "validate": "npm-run-all --parallel lint test"
   },
   "devDependencies": {
+    "babel-core": "^6.24.1",
     "chai": "^3.5.0",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
     "eslint": "^3.19.0",
     "eslint-config-kentcdodds": "^12.2.1",
-    "ghooks": "^2.0.0",
+    "husky": "^0.13.4",
     "mocha": "^3.3.0",
     "npm-run-all": "^4.0.2",
     "nyc": "^10.3.2",
