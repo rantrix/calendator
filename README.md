@@ -1,5 +1,14 @@
 # The Calendator!
 
+[![MIT License][npm-license-badge]][npm-license-link]
+[![Version][npm-version-badge]][npm-version-link]
+[![Travis Build Status][travis-badge]][travis-link]
+[![Code Coverage][codecov-badge]][codecov-link]
+
+[![Watch on GitHub][github-watch-badge]][github-watch-link]
+[![Star on GitHub][github-star-badge]][github-star-link]
+[![Tweet][twitter-badge]][twitter-link]
+
 The Calendator will give you a calendar if you give it a month and a year OR a
 date!
 
@@ -229,3 +238,18 @@ Imagine the possibilities that you can do with the Calendator! Ahhhh!
   * [`.getWeekdays() => Object(frozen)`](api_docs/getWeekdays.md)
   * [`.giveMeCalendarForMonthYear(month, year) => Array`](api_docs/giveMeCalendarForMonthYear.md)
   * [`.giveMeCalendarForDate(date) => Array`](api_docs/giveMeCalendarForDate.md)
+
+[codecov-badge]: https://img.shields.io/codecov/c/github/rantrix/calendator.svg?style=flat-square
+[codecov-link]: https://codecov.io/github/rantrix/calendator
+[github-watch-badge]: https://img.shields.io/github/watchers/rantrix/calendator.svg?style=social
+[github-watch-link]: https://github.com/rantrix/calendator/watchers
+[github-star-badge]: https://img.shields.io/github/stars/rantrix/calendator.svg?style=social
+[github-star-link]: https://github.com/rantrix/calendator/stargazers
+[npm-license-badge]: https://img.shields.io/npm/l/calendator.svg?style=flat-square
+[npm-license-link]: https://github.com/rantrix/calendator/blob/master/LICENSE
+[npm-version-badge]: https://img.shields.io/npm/v/calendator.svg?style=flat-square
+[npm-version-link]: https://www.npmjs.com/package/calendator
+[travis-badge]: https://img.shields.io/travis/rantrix/calendator.svg?style=flat-square
+[travis-link]: https://travis-ci.org/rantrix/calendator
+[twitter-badge]: https://img.shields.io/twitter/url/https/github.com/rantrix/calendator.svg?style=social
+[twitter-link]: https://twitter.com/intent/tweet?text=Check%20out%20the%20Calendator!%20https://github.com/rantrix/calendator%20%F0%9F%91%8D
