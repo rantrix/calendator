@@ -90,14 +90,14 @@
     return !isInMonthRange(month);
   }
 
+  function createEmptyWeek() {
+    return [null, null, null, null, null, null, null];
+  }
+
   function Calendator(startWeekWithThisWeekday, dayCreationHandler) {
     this._startWeekday = isInNumericWeekdayRange(startWeekWithThisWeekday) ? startWeekWithThisWeekday : SUN;
     this._dayCreationHandler = isTypeOf('function', dayCreationHandler) ? dayCreationHandler : null;
     this._cachedCalendars = {};
-  }
-
-  function createEmptyWeek() {
-    return [null, null, null, null, null, null, null];
   }
 
   Calendator.prototype.getMonths = function () {
