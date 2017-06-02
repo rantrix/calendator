@@ -3,7 +3,7 @@
   "version": "1.0.0-development",
   "author": "Dexter Vu",
   "license": "MIT",
-  "description": "The Calendator will give you a calendar if you give it a month and a year OR a date!",
+  "description": "The Calendator will generate a calendar and cache it for any month and year OR date!",
   "main": "index.js",
   "keywords": [
     "calendar",

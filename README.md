@@ -5,8 +5,7 @@
 [![Travis Build Status][travis-badge]][travis-link]
 [![Code Coverage][codecov-badge]][codecov-link]
 
-The Calendator will give you a calendar if you give it a month and a year OR a
-date!
+The Calendator will generate a calendar and cache it for any month and year OR date!
 
 ```
 var calendator = new Calendator();
