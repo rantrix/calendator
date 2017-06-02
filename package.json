@@ -3,7 +3,7 @@
   "version": "1.0.0-development",
   "author": "Dexter Vu",
   "license": "MIT",
-  "description": "Give Calendator a date and it will give you a calendar (array of weeks) for the month!",
+  "description": "The Calendator will give you a calendar if you give it a month and a year OR a date!",
   "main": "index.js",
   "keywords": [
     "calendar",

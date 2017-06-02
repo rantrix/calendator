@@ -5,10 +5,6 @@
 [![Travis Build Status][travis-badge]][travis-link]
 [![Code Coverage][codecov-badge]][codecov-link]
 
-[![Watch on GitHub][github-watch-badge]][github-watch-link]
-[![Star on GitHub][github-star-badge]][github-star-link]
-[![Tweet][twitter-badge]][twitter-link]
-
 The Calendator will give you a calendar if you give it a month and a year OR a
 date!
 
@@ -36,14 +32,28 @@ calendator.giveMeCalendarForDate(may2017);
 //    ]
 ```
 
-# License
-
-[MIT](LICENSE). Copyright (c) 2017 Dexter Vu.
+[![Watch on GitHub][github-watch-badge]][github-watch-link]
+[![Star on GitHub][github-star-badge]][github-star-link]
+[![Tweet][twitter-badge]][twitter-link]
 
 # Installation
 
 Install node to get `npm` and then run `npm install calendator`. You can use
 [`nvm`](https://github.com/creationix/nvm) to help you mange your node versions.
+
+Use with [Node.js](https://nodejs.org/en/), [Browserify](http://browserify.org/), or [webpack](https://webpack.github.io/):
+
+```
+var Calendator = require('calendator');
+var calendator = new Calendator();
+```
+
+The Calendator supports **CommonJS**, **UMD**, and browser (attaches itself to
+`window.dv.Calendator`).
+
+# License
+
+[MIT](LICENSE). Copyright (c) 2017 Dexter Vu.
 
 # Usage
 
@@ -53,8 +63,9 @@ Install node to get `npm` and then run `npm install calendator`. You can use
 
 ## Caching
 
-The Calendator will only build a calendar once when you ask for a calendar, then it caches the calendar. When you ask
-for the same calendar next time, it will return the same exact calendar from it's cache.
+The Calendator will only build a calendar once when you ask for a calendar, then
+it caches the calendar. When you ask for the same calendar next time, it will
+return the same exact calendar from it's cache.
 
 ## Tips
 
