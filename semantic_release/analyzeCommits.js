@@ -9,19 +9,31 @@ var MAJOR_TYPES = [];
 var MINOR_TYPES = ['feat', 'perf'];
 var PATCH_TYPES = ['fix', 'refactor', 'revert'];
 
-var MAJOR_BUMP_NOTE_KEYWORDS = Object.freeze([
-  'BREAKING CHANGE',
-
-  'BUMP MAJOR',
-  'BUMP X.0.0',
-
+var MINOR_BUMP_NOTE_KEYWORDS = [
   'BUMP MINOR',
   'BUMP 0.X.0',
+];
 
+var PATCH_BUMP_NOTE_KEYWORDS = [
   'BUMP PATCH',
   'BUMP 0.0.X'
-]);
-var PARSE_OPTIONS = {noteKeywords: MAJOR_BUMP_NOTE_KEYWORDS};
+];
+
+var MAJOR_BUMP_NOTE_KEYWORDS = [
+  'BREAKING CHANGE',
+  'BUMP MAJOR',
+  'BUMP X.0.0'
+];
+
+var NOTE_KEYWORDS = [
+  MAJOR_BUMP_NOTE_KEYWORDS,
+  MINOR_BUMP_NOTE_KEYWORDS,
+  PATCH_BUMP_NOTE_KEYWORDS
+].reduce(function (accum, current) {
+  return accum.concat(current);
+}, []);
+
+var PARSE_OPTIONS = {noteKeywords: NOTE_KEYWORDS};
 
 function getTypesConfigFromPackageJson(packageJson) {
   try {
@@ -41,24 +53,27 @@ function getTypesConfigFromPackageJson(packageJson) {
   }
 }
 
-function isMajorCommitType(commit, patchTypes) {
+function checkCommitTypeAndNotes(commit, patchTypes, noteKeywords) {
   if (patchTypes.includes(commit.type)) return true;
-
   var notes = commit.notes;
   for (var i = 0; i < notes.length; i++) {
     var note = notes[i];
     var noteTitle = note.title.toUpperCase();
-    if (MAJOR_BUMP_NOTE_KEYWORDS.includes(noteTitle)) return true;
+    if (noteKeywords.includes(noteTitle)) return true;
   }
   return false;
 }
 
+function isMajorCommitType(commit, majorTypes) {
+  return checkCommitTypeAndNotes(commit, majorTypes, MAJOR_BUMP_NOTE_KEYWORDS);
+}
+
 function isMinorCommitType(commit, minorTypes) {
-  return minorTypes.includes(commit.type);
+  return checkCommitTypeAndNotes(commit, minorTypes, MINOR_BUMP_NOTE_KEYWORDS);
 }
 
 function isPatchCommitType(commit, patchTypes) {
-  return patchTypes.includes(commit.type);
+  return checkCommitTypeAndNotes(commit, patchTypes, PATCH_BUMP_NOTE_KEYWORDS);
 }
 
 module.exports = function (pluginConfig, config, cb) {
