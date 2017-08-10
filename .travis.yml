@@ -2,16 +2,13 @@ language: node_js
 cache:
   directories:
     - node_modules
+    - $HOME/.yarn-cache
 notifications:
   email: false
 node_js:
   - '7'
-  - '6'
-  - '4'
 before_install:
-  - npm i -g npm@^2.0.0
-before_script:
-  - npm prune
+  - npm i -g npm@^5.0.0
 script:
   - npm run validate
 after_success:
