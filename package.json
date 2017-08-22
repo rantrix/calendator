@@ -47,7 +47,7 @@
     ]
   },
   "release": {
-    "analyzeCommits": "node_modules/dv-plugin-analyze-commits/src/index.js"
+    "analyzeCommits": "./node_modules/dv-plugin-analyze-commits/src/index.js"
   },
   "scripts": {
     "c": "git-cz",
