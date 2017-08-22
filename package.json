@@ -1,6 +1,6 @@
 {
   "name": "calendator",
-  "version": "1.0.0-development",
+  "version": "0.0.0-development",
   "author": "Dexter Vu",
   "license": "MIT",
   "description": "The Calendator will generate a calendar and cache it for any month and year OR date!",
@@ -76,6 +76,6 @@
     "mocha": "^3.3.0",
     "npm-run-all": "^4.0.2",
     "nyc": "^10.3.2",
-    "semantic-release": "^6.3.6"
+    "semantic-release": "^7.0.2"
   }
 }
