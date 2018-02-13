@@ -42,7 +42,8 @@
       "./index.js"
     ],
     "exclude": [
-      "coverage",
+      "index.test.js",
+      "coverage/**",
       "semantic_release/**"
     ]
   },

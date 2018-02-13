@@ -37,8 +37,7 @@ calendator.giveMeCalendarForDate(may2017);
 
 # Installation
 
-Install node to get `npm` and then run `npm install calendator`. You can use
-[`nvm`](https://github.com/creationix/nvm) to help you mange your node versions.
+`npm install calendator` or `yarn add calendator`.
 
 Use with [Node.js](https://nodejs.org/en/), [Browserify](http://browserify.org/), or [webpack](https://webpack.github.io/):
 
@@ -52,7 +51,7 @@ The Calendator supports **CommonJS**, **UMD**, and browser (attaches itself to
 
 # License
 
-[MIT](LICENSE). Copyright (c) 2017 Dexter Vu.
+[MIT](LICENSE).
 
 # Usage
 
@@ -131,11 +130,9 @@ creates a day, it will use your day creation handler to build the day data and
 pass it the following arguments:
 `dayCreationHandler(year, month, day, weekday, currentWeekOfTheMonth)`
 
-```
-/**
- * NORMAL DEFAULT BEHAVIOR
- */
+NORMAL DEFAULT BEHAVIOR:
 
+```
 var may = Calendator.MAY;
 var year2017 = 2017;
 
@@ -148,11 +145,11 @@ calendator.giveMeCalendarForMonthYear(may, year2017);
 //      [21, 22, 23, 24, 25, 26, 27],
 //      [28, 29, 30, 31, null, null, null]
 //    ]
+```
 
-/**
- * NOW, WITH THE dayCreationHandler
- */
+NOW, WITH THE `dayCreationHandler`:
 
+```
 function dayCreationHandler(year, month, day, weekday, currentWeekOfTheMonth) {
   var myCustomDayData = ...; // build your custom data according to your logic
   return myCustomDayData;    // return your custom data.
@@ -213,12 +210,12 @@ calendator.giveMeCalendarForMonthYear(may, year2017);
 //    ]
 ```
 
-Imagine the possibilities that you can do with the Calendator! Ahhhh!
+Imagine all the possibilities that you can do with the Calendator! Ahhhh!
 
 # Calendator's API
 
 * Constructor
-  * [`new Calendator([startWeekWithThisWeekday][, dayCreationHandler]) => Calendator`](api_docs/constructor.md)
+  * [`new Calendator([startWeekWithThisWeekday][, dayCreationHandler][, fillDaysForPrevAndNextMonths]) => Calendator`](api_docs/constructor.md)
 * Class Properties
   * Weekdays
     * `Calendator.SUN => 0`
@@ -244,10 +241,12 @@ Imagine the possibilities that you can do with the Calendator! Ahhhh!
     * `Calendator.NOV => 10`
     * `Calendator.DEC => 11`
 * Public Instance Methods
+  * [`.getCalendarForDate(date) => Array`](api_docs/getCalendarForDate.md)
+  * [`.getCalendarForMonthYear(month, year) => Array`](api_docs/getCalendarForMonthYear.md)
   * [`.getMonths() => Object(frozen)`](api_docs/getMonths.md)
   * [`.getWeekdays() => Object(frozen)`](api_docs/getWeekdays.md)
-  * [`.giveMeCalendarForMonthYear(month, year) => Array`](api_docs/giveMeCalendarForMonthYear.md)
   * [`.giveMeCalendarForDate(date) => Array`](api_docs/giveMeCalendarForDate.md)
+  * [`.giveMeCalendarForMonthYear(month, year) => Array`](api_docs/giveMeCalendarForMonthYear.md)
 
 [codecov-badge]: https://img.shields.io/codecov/c/github/rantrix/calendator.svg?style=flat-square
 [codecov-link]: https://codecov.io/github/rantrix/calendator

@@ -53,16 +53,19 @@ describe('Calendator', function () {
     });
 
     describe('dayCreationHandler', function () {
-      it('stores dayCreationHandler to this._dayCreationHandler only if it is a function', function () {
-        var subject = new Calendator(null, 0);
-        expect(subject._dayCreationHandler).to.equal(null);
-
-        subject = new Calendator(null, '1');
-        expect(subject._dayCreationHandler).to.equal(null);
-
+      it('stores dayCreationHandler to this._dayCreationHandler if it is a function', function () {
         var dayCreationHandler = function () {};
-        subject = new Calendator(null, dayCreationHandler);
+        var subject = new Calendator(null, dayCreationHandler);
         expect(subject._dayCreationHandler).to.equal(dayCreationHandler);
+      });
+
+      it('sets defaltDayCreationHandler to this._dayCreationHandler if it is not a function', function () {
+        var subject = new Calendator(null, 0);
+        var year = 2018;
+        var month = MONTHS.FEB;
+        var currentDay = 10;
+        // default behavior is to return the current day
+        expect(subject._dayCreationHandler(year, month, currentDay)).to.equal(currentDay);
       });
     });
 
@@ -92,7 +95,14 @@ describe('Calendator', function () {
     [14, 15, 16, 17, 18, 19, 20],
     [21, 22, 23, 24, 25, 26, 27],
     [28, 29, 30, 31, null, null, null]
-  ]
+  ];
+  var may2017CalendarWithAprilAndJune = [
+    [30, 1, 2, 3, 4, 5, 6],
+    [7, 8, 9, 10, 11, 12, 13],
+    [14, 15, 16, 17, 18, 19, 20],
+    [21, 22, 23, 24, 25, 26, 27],
+    [28, 29, 30, 31, 1, 2, 3]
+  ];
   var may2017CalendarStartingWeekdayAsWednesday = [
     [null, null, null, null, null, 1, 2],
     [3, 4, 5, 6, 7, 8, 9],
@@ -105,7 +115,7 @@ describe('Calendator', function () {
     2017: {
       4: may2017Calendar
     }
-  }
+  };
 
   function dayCreationHandler(year, month, currentDay, weekday, currentWeek) {
     return {year: year, month: month, currentDay: currentDay, weekday: weekday, currentWeek: currentWeek};
@@ -344,6 +354,33 @@ describe('Calendator', function () {
     ]
   ];
 
+  describe('.getCalendarForMonthYear(month, year)', function () {
+    it('is the exact same function as .giveMeCalendarForMonthYear', function () {
+      expect(subject.getCalendarForMonthYear).to.eql(subject.giveMeCalendarForMonthYear);
+    });
+  });
+
+  describe('.getCalendarForDate(date)', function () {
+    it('is the exact same function as .giveMeCalendarForDate', function () {
+      expect(subject.getCalendarForDate).to.eql(subject.giveMeCalendarForDate);
+    });
+  });
+
+  describe('.giveMeCalendarForDate(date)', function () {
+    it('returns an empty calendar if date is NOT an instance of Date', function () {
+      expect(subject.giveMeCalendarForDate('a')).to.eql(EMPTY_CALENDAR);
+      expect(subject.giveMeCalendarForDate(1)).to.eql(EMPTY_CALENDAR);
+    });
+
+    it('returns calendar for may 2017', function () {
+      expect(subject.giveMeCalendarForDate(date)).to.deep.eql(may2017Calendar);
+    });
+
+    it('returns calendar for may 2017 with the start weekday as Wednesday', function () {
+      var subject = new Calendator(WEEKDAYS.WED);
+      expect(subject.giveMeCalendarForDate(date)).to.deep.eql(may2017CalendarStartingWeekdayAsWednesday);
+    });
+  });
 
   describe('.giveMeCalendarForMonthYear(month, year)', function () {
     it('returns an empty calendar if month and year are not valid', function () {
@@ -366,25 +403,57 @@ describe('Calendator', function () {
     });
   });
 
-  describe('.giveMeCalendarForDate(date)', function () {
-    it('returns an empty calendar if date is NOT an instance of Date', function () {
-      expect(subject.giveMeCalendarForDate('a')).to.eql(EMPTY_CALENDAR);
-      expect(subject.giveMeCalendarForDate(1)).to.eql(EMPTY_CALENDAR);
-    });
-
-    it('returns calendar for may 2017', function () {
-      expect(subject.giveMeCalendarForDate(date)).to.deep.eql(may2017Calendar);
-    });
-
-    it('returns calendar for may 2017 with the start weekday as Wednesday', function () {
-      var subject = new Calendator(WEEKDAYS.WED);
-      expect(subject.giveMeCalendarForDate(date)).to.deep.eql(may2017CalendarStartingWeekdayAsWednesday);
-    });
-  });
-
   describe('._buildCalendarForMonthYear(month, year)', function () {
     it('creates a calendar for month and year', function () {
       expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(may2017Calendar)
+
+      subject = new Calendator(WEEKDAYS.SUN, dayCreationHandler);
+      expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(may2017CalendarModifiedByDayCreationHandler)
+    });
+
+    it("fills out the first week and last week of the month with previous and next month's date", function () {
+      var subject = new Calendator(WEEKDAYS.SUN, null, true);
+      expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(may2017CalendarWithAprilAndJune)
+    });
+
+    it("fills out the first week and last week of the month with previous and next month's date using dayCreationHandler", function () {
+      var subject = new Calendator(WEEKDAYS.SUN, dayCreationHandler, true);
+      var expected = may2017CalendarModifiedByDayCreationHandler.slice();
+      var expectedFirstWeek = expected[0].slice();
+      expectedFirstWeek[0] = {
+        year: year2017,
+        month: may - 1,
+        currentDay: may2017CalendarWithAprilAndJune[0][0],
+        weekday: WEEKDAYS.SUN,
+        currentWeek: 1
+      };
+      var expectedLastWeek = expected[expected.length - 1].slice();
+      expectedLastWeek[4] = {
+        year: year2017,
+        month: may + 1,
+        currentDay: 1,
+        weekday: WEEKDAYS.THU,
+        currentWeek: 5
+      };
+      expectedLastWeek[5] = {
+        year: year2017,
+        month: may + 1,
+        currentDay: 2,
+        weekday: WEEKDAYS.FRI,
+        currentWeek: 5
+      };
+      expectedLastWeek[6] = {
+        year: year2017,
+        month: may + 1,
+        currentDay: 3,
+        weekday: WEEKDAYS.SAT,
+        currentWeek: 5
+      };
+
+      expected[0] = expectedFirstWeek;
+      expected[expected.length - 1 ] = expectedLastWeek;
+
+      expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(expected)
     });
   });
 

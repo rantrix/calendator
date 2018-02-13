@@ -94,9 +94,14 @@
     return [null, null, null, null, null, null, null];
   }
 
-  function Calendator(startWeekWithThisWeekday, dayCreationHandler) {
+  function defaultDayCreationHandler(year, month, currentDay) {
+    return currentDay;
+  }
+
+  function Calendator(startWeekWithThisWeekday, dayCreationHandler, fillDaysForPrevAndNextMonths) {
     this._startWeekday = isInNumericWeekdayRange(startWeekWithThisWeekday) ? startWeekWithThisWeekday : SUN;
-    this._dayCreationHandler = isTypeOf('function', dayCreationHandler) ? dayCreationHandler : null;
+    this._dayCreationHandler = isTypeOf('function', dayCreationHandler) ? dayCreationHandler : defaultDayCreationHandler;
+    this._fillDaysForPrevAndNextMonths = Boolean(fillDaysForPrevAndNextMonths);
     this._cachedCalendars = {};
   }
 
@@ -120,6 +125,7 @@
 
     return calendar;
   }
+  Calendator.prototype.getCalendarForMonthYear = Calendator.prototype.giveMeCalendarForMonthYear;
 
   Calendator.prototype.giveMeCalendarForDate = function (date) {
     if (isNotDate(date)) return EMPTY_CALENDAR;
@@ -128,7 +134,9 @@
     var calendar = this.giveMeCalendarForMonthYear(month, year);
     return calendar;
   }
+  Calendator.prototype.getCalendarForDate = Calendator.prototype.giveMeCalendarForDate;
 
+  // eslint-disable-next-line complexity
   Calendator.prototype._buildCalendarForMonthYear = function (month, year) {
     var dateForLastDayOfMonth = new Date(year, month + 1, 0);
     var dateForFirstDayOfMonth = new Date(year, month, 1);
@@ -143,22 +151,42 @@
     var weekday = this._offsetByStartWeekday(weekdayOfFirstDayInMonth);
 
     while (currentDay <= numberOfDaysInMonth) {
-      if (!this._dayCreationHandler) {
-        week[weekday] = currentDay;
-      } else {
-        week[weekday] = this._dayCreationHandler(year, month, currentDay, weekday, currentWeek);
-      }
+      week[weekday] = this._dayCreationHandler(year, month, currentDay, weekday, currentWeek);
 
       weekday++;
       currentDay++;
 
       var weekIsFull = Boolean(week[week.length - 1]);
       if (weekIsFull) {
+        // special case to fill the first week with dates from previous month
+        if (this._fillDaysForPrevAndNextMonths && currentWeek === 1) {
+          var dateForLastDayOfPreviousMonth = new Date(year, month, 0);
+          var previousMonth = month - 1;
+
+          var numberOfDaysInPreviousMonth = dateForLastDayOfPreviousMonth.getDate();
+          for (var i = week.length - 1; i > -1; i--) {
+            if (week[i]) continue;
+            week[i] = this._dayCreationHandler(year, previousMonth, numberOfDaysInPreviousMonth, i, currentWeek);
+            numberOfDaysInPreviousMonth--;
+          }
+        }
+
         calendar.push(week);
         week = createEmptyWeek();
         weekday = SUN;
         currentWeek++;
       } else if (currentDay > numberOfDaysInMonth) {
+        // special case to fill the first week with dates from previous month
+        if (this._fillDaysForPrevAndNextMonths) {
+          var weekdayOfFirstDayInNextMonth = 1;
+          var nextMonth = month + 1;
+          for (var j = 0; j < week.length; j++) {
+            if (week[j]) continue;
+            week[j] = this._dayCreationHandler(year, nextMonth, weekdayOfFirstDayInNextMonth, j, currentWeek);
+            weekdayOfFirstDayInNextMonth++;
+          }
+        }
+
         calendar.push(week);
       }
     }
