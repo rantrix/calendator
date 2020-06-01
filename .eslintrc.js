@@ -5,12 +5,6 @@ module.exports = {
     node: true,
     mocha: true
   },
-  extends: [
-    'kentcdodds/best-practices',
-    'kentcdodds/possible-errors'
-  ],
-  rules: {
-    curly: ['error', 'multi-line'],
-    'vars-on-top': 0
-  }
+  extends: [],
+  rules: {}
 };

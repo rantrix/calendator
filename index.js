@@ -1,256 +1,126 @@
 'use strict';
 
-//  Copyright (c) 2017 Dexter Vu.
-//  Licensed under the MIT License (MIT), see
-//  https://github.com/rantrix/calendator
+const DAY_OF_WEEK = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
 
-/* global define */
+// m = 1 = jan
+// 1 <= m <= 12
+// d = 0 = sun
+const dayOfTheWeek = (y, m, d) => {
+  if (m < 3) y -= 1;
+  return (y + Math.floor(y/4) - Math.floor(y/100) + Math.floor(y/400) + DAY_OF_WEEK[m - 1] + d) % 7;
+}
 
-(function () {
-  var EMPTY_CALENDAR = Object.freeze([]);
+const isLeapYear = (y) => {
+  return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+}
 
-  var NUMBER_OF_DAYS_IN_A_WEEK = 7;
-
-  var SUN = 0;
-  var MON = 1;
-  var TUE = 2;
-  var WED = 3;
-  var THU = 4;
-  var FRI = 5;
-  var SAT = 6;
-
-  var WEEKDAYS = {
-    SUN: SUN,
-    MON: MON,
-    TUE: TUE,
-    WED: WED,
-    THU: THU,
-    FRI: FRI,
-    SAT: SAT
-  };
-  Object.freeze(WEEKDAYS);
-
-  var JAN = 0;
-  var FEB = 1;
-  var MAR = 2;
-  var APR = 3;
-  var MAY = 4;
-  var JUN = 5;
-  var JUL = 6;
-  var AUG = 7;
-  var SEP = 8;
-  var OCT = 9;
-  var NOV = 10;
-  var DEC = 11;
-
-  var MONTHS = {
-    JAN: JAN,
-    FEB: FEB,
-    MAR: MAR,
-    APR: APR,
-    MAY: MAY,
-    JUN: JUN,
-    JUL: JUL,
-    AUG: AUG,
-    SEP: SEP,
-    OCT: OCT,
-    NOV: NOV,
-    DEC: DEC
-  };
-  Object.freeze(MONTHS);
-
-  /* istanbul ignore next */
-  function isTypeOf(type, test) {
-    if (typeof type !== 'string') return false;
-    return typeof test === type;
+// m = 1 = jan
+const daysInMonth = (y, m) => {
+  switch (m) {
+    case 4:
+    case 6:
+    case 9:
+    case 11: return 30;
+    case 2: return isLeapYear(y) ? 29 : 28;
+    default: return 31;
   }
+}
 
-  function isNotTypeOf(type, test) {
-    if (!isTypeOf('string', test)) return false;
-    return !isTypeOf(type, test);
-  }
+// m = 0 = jan
+const defaultDateCreator = (y, m, d) => new Date(y, m, d);
 
-  function isDate(test) {
-    return test instanceof Date;
-  }
+// cpuMonth = 0 = jan
+// 1 <= date <= 31
+const getCalendarMonth = (y, cpuMonth, opts = {}) => {
+  const year = parseInt(y);
+  if (isNaN(year)) throw new Error("Missing 'year'.")
+  if (cpuMonth < 0 || cpuMonth > 11) throw new Error("Invalid 'cpuMonth', it must be: 0 <= cpuMonth <= 11");
 
-  function isNotDate(test) {
-    return !isDate(test);
-  }
+  const { 
+    dateCreator = defaultDateCreator,
+    fillPreviousMonth = false,
+    fillNextMonth = false,
+  } = opts;
 
-  function isInNumericWeekdayRange(numericWeekday) {
-    return numericWeekday >= SUN && numericWeekday <= SAT;
-  }
+  let { startDay = 0 } = opts;
+  startDay = Math.abs(startDay % 7);
 
-  function isInMonthRange(month) {
-    return month >= JAN && month <= DEC;
-  }
+  const humanMonth = cpuMonth + 1;
+  const totalDaysInMonth = daysInMonth(year, humanMonth);
+  const startDayOfMonth = dayOfTheWeek(year, humanMonth, 1);
 
-  function isNotInMonthRange(month) {
-    return !isInMonthRange(month);
-  }
+  let prevMonthTotalDays = fillPreviousMonth ? (
+    humanMonth - 1 === 0
+      ? daysInMonth(year - 1, 12)
+      : daysInMonth(year, cpuMonth)
+  ) : null;
+  let nextMonthStartDate = fillNextMonth ? 1 : null;
 
-  function createEmptyWeek() {
-    return [null, null, null, null, null, null, null];
-  }
+  const calendarMonth = [];
+  let prevMonthTotalDaysToFill = (startDay < startDayOfMonth)
+    ? 7 - (7 - startDayOfMonth) - startDay
+    : 7 - (startDay - startDayOfMonth);
+  prevMonthTotalDaysToFill = startDay === startDayOfMonth ? 0 : prevMonthTotalDaysToFill;
 
-  function defaultDayCreationHandler(year, month, currentDay) {
-    return currentDay;
-  }
-
-  function Calendator(startWeekWithThisWeekday, dayCreationHandler, fillDaysForPrevAndNextMonths) {
-    this._startWeekday = isInNumericWeekdayRange(startWeekWithThisWeekday) ? startWeekWithThisWeekday : SUN;
-    this._dayCreationHandler = isTypeOf('function', dayCreationHandler) ? dayCreationHandler : defaultDayCreationHandler;
-    this._fillDaysForPrevAndNextMonths = Boolean(fillDaysForPrevAndNextMonths);
-    this._cachedCalendars = {};
-  }
-
-  Calendator.prototype.getMonths = function () {
-    return MONTHS;
-  }
-
-  Calendator.prototype.getWeekdays = function () {
-    return WEEKDAYS;
-  }
-
-  Calendator.prototype.giveMeCalendarForMonthYear = function (month, year) {
-    var guardCases = isNotTypeOf('number', month) || isNotTypeOf('number', year) || isNotInMonthRange(month);
-    if (guardCases) return EMPTY_CALENDAR;
-
-    var cachedCalendar = this._getCachedCalendarForMonthYear(month, year);
-    if (cachedCalendar) return cachedCalendar;
-
-    var calendar = this._buildCalendarForMonthYear(month, year);
-    this._cacheCalendar(month, year, calendar);
-
-    return calendar;
-  }
-  Calendator.prototype.getCalendarForMonthYear = Calendator.prototype.giveMeCalendarForMonthYear;
-
-  Calendator.prototype.giveMeCalendarForDate = function (date) {
-    if (isNotDate(date)) return EMPTY_CALENDAR;
-    var month = date.getMonth();
-    var year = date.getFullYear();
-    var calendar = this.giveMeCalendarForMonthYear(month, year);
-    return calendar;
-  }
-  Calendator.prototype.getCalendarForDate = Calendator.prototype.giveMeCalendarForDate;
-
-  // eslint-disable-next-line complexity
-  Calendator.prototype._buildCalendarForMonthYear = function (month, year) {
-    var dateForLastDayOfMonth = new Date(year, month + 1, 0);
-    var dateForFirstDayOfMonth = new Date(year, month, 1);
-
-    var weekdayOfFirstDayInMonth = dateForFirstDayOfMonth.getDay();
-    var numberOfDaysInMonth = dateForLastDayOfMonth.getDate();
-
-    var calendar = [];
-    var currentDay = 1;
-    var currentWeek = 1;
-    var week = createEmptyWeek();
-    var weekday = this._offsetByStartWeekday(weekdayOfFirstDayInMonth);
-
-    while (currentDay <= numberOfDaysInMonth) {
-      week[weekday] = this._dayCreationHandler(year, month, currentDay, weekday, currentWeek);
-
-      weekday++;
-      currentDay++;
-
-      var weekIsFull = Boolean(week[week.length - 1]);
-      if (weekIsFull) {
-        // special case to fill the first week with dates from previous month
-        if (this._fillDaysForPrevAndNextMonths && currentWeek === 1) {
-          var dateForLastDayOfPreviousMonth = new Date(year, month, 0);
-          var previousMonth = month - 1;
-
-          var numberOfDaysInPreviousMonth = dateForLastDayOfPreviousMonth.getDate();
-          for (var i = week.length - 1; i > -1; i--) {
-            if (week[i]) continue;
-            week[i] = this._dayCreationHandler(year, previousMonth, numberOfDaysInPreviousMonth, i, currentWeek);
-            numberOfDaysInPreviousMonth--;
-          }
-        }
-
-        calendar.push(week);
-        week = createEmptyWeek();
-        weekday = SUN;
-        currentWeek++;
-      } else if (currentDay > numberOfDaysInMonth) {
-        // special case to fill the first week with dates from previous month
-        if (this._fillDaysForPrevAndNextMonths) {
-          var weekdayOfFirstDayInNextMonth = 1;
-          var nextMonth = month + 1;
-          for (var j = 0; j < week.length; j++) {
-            if (week[j]) continue;
-            week[j] = this._dayCreationHandler(year, nextMonth, weekdayOfFirstDayInNextMonth, j, currentWeek);
-            weekdayOfFirstDayInNextMonth++;
-          }
-        }
-
-        calendar.push(week);
-      }
+  const [prevYear, prevMonth] = (cpuMonth - 1 < 0)
+    ? [year - 1, 11]
+    : [year, cpuMonth - 1];
+  while (prevMonthTotalDaysToFill > 0) {
+    prevMonthTotalDaysToFill -= 1;
+    if (prevMonthTotalDays === null) {
+      calendarMonth[prevMonthTotalDaysToFill] = null;
+    } else {
+      calendarMonth[prevMonthTotalDaysToFill] = dateCreator(prevYear, prevMonth, prevMonthTotalDays);
+      prevMonthTotalDays -= 1;
     }
-
-    return calendar;
   }
 
-  Calendator.prototype._cacheCalendar = function (month, year, calendarToBeCached) {
-    var cachedYear = this._cachedCalendars[year];
-    if (!cachedYear) {
-      cachedYear = {};
-      this._cachedCalendars[year] = cachedYear;
+  let d = 1;
+  while (d <= totalDaysInMonth) {
+    calendarMonth[calendarMonth.length] = dateCreator(year, cpuMonth, d);
+    d += 1;
+  }
+
+  const [nextYear, nextMonth] = (cpuMonth + 1 > 11)
+    ? [year + 1, 0]
+    : [year, cpuMonth + 1];
+  while (calendarMonth.length % 7 !== 0) {
+    if (nextMonthStartDate === null) {
+      calendarMonth[calendarMonth.length] = null;
+    } else {
+      calendarMonth[calendarMonth.length] = dateCreator(nextYear, nextMonth, nextMonthStartDate);
+      nextMonthStartDate += 1;
     }
-    cachedYear[month] = calendarToBeCached;
   }
 
-  Calendator.prototype._getCachedCalendarForMonthYear = function (month, year) {
-    var cachedCalendars = this._cachedCalendars;
-    var cachedYear = cachedCalendars[year];
-    if (!cachedYear) return null;
-    var cachedMonth = cachedYear[month];
-    return cachedMonth ? cachedMonth : null;
+  return calendarMonth;
+}
+
+const sliceToWeeks = (calendarMonth) => {
+  const slicedCalendarMonth = [];
+  const numberOfWeeks = calendarMonth.length / 7
+
+  let movingReader = 0;
+  for (let i = 0; i < numberOfWeeks; i++) {
+    const week = [];
+    for (let j = 0; j < 7; j++) {
+      week[j] = calendarMonth[movingReader];
+      movingReader++;
+    }
+    slicedCalendarMonth[i] = week;
   }
+  return slicedCalendarMonth;
+}
 
-  Calendator.prototype._offsetByStartWeekday = function (weekday) {
-    weekday -= this._startWeekday;
-    if (weekday < 0) return (weekday + NUMBER_OF_DAYS_IN_A_WEEK);
-    return weekday;
+const calendator = Object.freeze({ getCalendarMonth, sliceToWeeks });
+
+/* istanbul ignore next */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = calendator;
+} else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
+  define('calendator', [], () => calendator);
+} else {
+  if (!window.dvCalendator) { 
+    window.dvCalendator = calendator;
   }
-
-  Calendator.SUN = SUN;
-  Calendator.MON = MON;
-  Calendator.TUE = TUE;
-  Calendator.WED = WED;
-  Calendator.THU = THU;
-  Calendator.FRI = FRI;
-  Calendator.SAT = SAT;
-  Calendator.WEEKDAYS = WEEKDAYS;
-
-  Calendator.JAN = JAN;
-  Calendator.FEB = FEB;
-  Calendator.MAR = MAR;
-  Calendator.APR = APR;
-  Calendator.MAY = MAY;
-  Calendator.JUN = JUN;
-  Calendator.JUL = JUL;
-  Calendator.AUG = AUG;
-  Calendator.SEP = SEP;
-  Calendator.OCT = OCT;
-  Calendator.NOV = NOV;
-  Calendator.DEC = DEC;
-  Calendator.MONTHS = MONTHS;
-
-  Object.freeze(Calendator);
-
-  /* istanbul ignore next */
-  if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Calendator;
-  } else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
-    define('Calendator', [], function () {
-      return Calendator;
-    });
-  } else {
-    if (!window.dv) window.dv = {};
-    window.dv.Calendator = Calendator;
-  }
-})();
+}

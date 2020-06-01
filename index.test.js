@@ -1,493 +1,302 @@
-'use strict';
-/* eslint-disable no-shadow */
+const { getCalendarMonth, sliceToWeeks } = require('./index');
+const expect = require('chai').expect;
 
-var Calendator = require('.');
-var expect = require('chai').expect;
+describe('calendator', () => {
+  const dateCreator = (y, m, d) => `${y - 2000}-${m}-${d}`;
 
-describe('Calendator', function () {
-  var MONTHS = {
-    JAN: 0,
-    FEB: 1,
-    MAR: 2,
-    APR: 3,
-    MAY: 4,
-    JUN: 5,
-    JUL: 6,
-    AUG: 7,
-    SEP: 8,
-    OCT: 9,
-    NOV: 10,
-    DEC: 11
-  };
-
-  var WEEKDAYS = {
-    SUN: 0,
-    MON: 1,
-    TUE: 2,
-    WED: 3,
-    THU: 4,
-    FRI: 5,
-    SAT: 6
-  };
-
-  var EMPTY_CALENDAR = [];
-  var EMPTY_CACHED_CALENDARS = {};
-
-  var subject = new Calendator();
-
-  describe('Calendator(startWeekWithThisWeekday, dayCreationHandler)', function () {
-    describe('startWeekWithThisWeekday', function () {
-      it('defaults to SUN if startWeekWithThisWeekday is not present or not within weekday range', function () {
-        var subject = new Calendator();
-        expect(subject._startWeekday).to.equal(WEEKDAYS.SUN);
-        subject = new Calendator(20);
-        expect(subject._startWeekday).to.equal(WEEKDAYS.SUN);
-        subject = new Calendator('a');
-        expect(subject._startWeekday).to.equal(WEEKDAYS.SUN);
-      });
-
-      it('stores startWeekWithThisWeekday to this._startWeekday', function () {
-        var subject = new Calendator(WEEKDAYS.THU);
-        expect(subject._startWeekday).to.equal(WEEKDAYS.THU);
-      });
+  describe('.getCalendarMonth()', function () {
+    it("throws an error when there is no year", () => {
+      expect(() => getCalendarMonth('year')).to.throw();
     });
 
-    describe('dayCreationHandler', function () {
-      it('stores dayCreationHandler to this._dayCreationHandler if it is a function', function () {
-        var dayCreationHandler = function () {};
-        var subject = new Calendator(null, dayCreationHandler);
-        expect(subject._dayCreationHandler).to.equal(dayCreationHandler);
-      });
-
-      it('sets defaltDayCreationHandler to this._dayCreationHandler if it is not a function', function () {
-        var subject = new Calendator(null, 0);
-        var year = 2018;
-        var month = MONTHS.FEB;
-        var currentDay = 10;
-        // default behavior is to return the current day
-        expect(subject._dayCreationHandler(year, month, currentDay)).to.equal(currentDay);
-      });
+    it('throws an error when cpuMonth is not within valid range', () => {
+      expect(() => getCalendarMonth(2019, 20)).to.throw();
     });
 
-    it('creates an empty object for caching calendars', function () {
-      expect(subject._cachedCalendars).to.eql(EMPTY_CACHED_CALENDARS);
-    });
-  });
-
-  describe('.getMonths()', function () {
-    it('returns an objects with all the months', function () {
-      expect(subject.getMonths()).to.eql(MONTHS);
-    });
-  });
-
-  describe('.getWeekdays()', function () {
-    it('returns an objects with all the weekdays', function () {
-      expect(subject.getWeekdays()).to.eql(WEEKDAYS);
-    });
-  });
-
-  var year2017 = 2017;
-  var may = MONTHS.MAY;
-  var date = new Date(year2017, may, 1);
-  var may2017Calendar = [
-    [null, 1, 2, 3, 4, 5, 6],
-    [7, 8, 9, 10, 11, 12, 13],
-    [14, 15, 16, 17, 18, 19, 20],
-    [21, 22, 23, 24, 25, 26, 27],
-    [28, 29, 30, 31, null, null, null]
-  ];
-  var may2017CalendarWithAprilAndJune = [
-    [30, 1, 2, 3, 4, 5, 6],
-    [7, 8, 9, 10, 11, 12, 13],
-    [14, 15, 16, 17, 18, 19, 20],
-    [21, 22, 23, 24, 25, 26, 27],
-    [28, 29, 30, 31, 1, 2, 3]
-  ];
-  var may2017CalendarStartingWeekdayAsWednesday = [
-    [null, null, null, null, null, 1, 2],
-    [3, 4, 5, 6, 7, 8, 9],
-    [10, 11, 12, 13, 14, 15, 16],
-    [17, 18, 19, 20, 21, 22, 23],
-    [24, 25, 26, 27, 28, 29, 30],
-    [31, null, null, null, null, null, null]
-  ];
-  var cachedCalendars = {
-    2017: {
-      4: may2017Calendar
-    }
-  };
-
-  function dayCreationHandler(year, month, currentDay, weekday, currentWeek) {
-    return {year: year, month: month, currentDay: currentDay, weekday: weekday, currentWeek: currentWeek};
-  }
-  var may2017CalendarModifiedByDayCreationHandler = [
-    [
-      null,
-      {
-        year: year2017,
-        month: may,
-        currentDay: 1,
-        weekday: WEEKDAYS.MON,
-        currentWeek: 1
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 2,
-        weekday: WEEKDAYS.TUE,
-        currentWeek: 1
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 3,
-        weekday: WEEKDAYS.WED,
-        currentWeek: 1
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 4,
-        weekday: WEEKDAYS.THU,
-        currentWeek: 1
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 5,
-        weekday: WEEKDAYS.FRI,
-        currentWeek: 1
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 6,
-        weekday: WEEKDAYS.SAT,
-        currentWeek: 1
+    it('uses a default dateCreator if one is not provided', () => {
+      const expected = [null, null, null, null, null, null];
+      for (let i = 1; i < 30; i++) {
+        expected.push(new Date(2020, 1, i));
       }
-    ],
-    [
-      {
-        year: year2017,
-        month: may,
-        currentDay: 7,
-        weekday: WEEKDAYS.SUN,
-        currentWeek: 2
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 8,
-        weekday: WEEKDAYS.MON,
-        currentWeek: 2
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 9,
-        weekday: WEEKDAYS.TUE,
-        currentWeek: 2
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 10,
-        weekday: WEEKDAYS.WED,
-        currentWeek: 2
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 11,
-        weekday: WEEKDAYS.THU,
-        currentWeek: 2
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 12,
-        weekday: WEEKDAYS.FRI,
-        currentWeek: 2
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 13,
-        weekday: WEEKDAYS.SAT,
-        currentWeek: 2
-      }
-    ],
-    [
-      {
-        year: year2017,
-        month: may,
-        currentDay: 14,
-        weekday: WEEKDAYS.SUN,
-        currentWeek: 3
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 15,
-        weekday: WEEKDAYS.MON,
-        currentWeek: 3
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 16,
-        weekday: WEEKDAYS.TUE,
-        currentWeek: 3
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 17,
-        weekday: WEEKDAYS.WED,
-        currentWeek: 3
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 18,
-        weekday: WEEKDAYS.THU,
-        currentWeek: 3
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 19,
-        weekday: WEEKDAYS.FRI,
-        currentWeek: 3
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 20,
-        weekday: WEEKDAYS.SAT,
-        currentWeek: 3
-      }
-    ],
-    [
-      {
-        year: year2017,
-        month: may,
-        currentDay: 21,
-        weekday: WEEKDAYS.SUN,
-        currentWeek: 4
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 22,
-        weekday: WEEKDAYS.MON,
-        currentWeek: 4
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 23,
-        weekday: WEEKDAYS.TUE,
-        currentWeek: 4
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 24,
-        weekday: WEEKDAYS.WED,
-        currentWeek: 4
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 25,
-        weekday: WEEKDAYS.THU,
-        currentWeek: 4
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 26,
-        weekday: WEEKDAYS.FRI,
-        currentWeek: 4
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 27,
-        weekday: WEEKDAYS.SAT,
-        currentWeek: 4
-      }
-    ],
-    [
-      {
-        year: year2017,
-        month: may,
-        currentDay: 28,
-        weekday: WEEKDAYS.SUN,
-        currentWeek: 5
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 29,
-        weekday: WEEKDAYS.MON,
-        currentWeek: 5
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 30,
-        weekday: WEEKDAYS.TUE,
-        currentWeek: 5
-      },
-      {
-        year: year2017,
-        month: may,
-        currentDay: 31,
-        weekday: WEEKDAYS.WED,
-        currentWeek: 5
-      },
-      null,
-      null,
-      null
-    ]
-  ];
+      expect(getCalendarMonth(2020, 1)).to.deep.equal(expected);
+    });
 
-  describe('.getCalendarForMonthYear(month, year)', function () {
-    it('is the exact same function as .giveMeCalendarForMonthYear', function () {
-      expect(subject.getCalendarForMonthYear).to.eql(subject.giveMeCalendarForMonthYear);
+    it('returns calendar month for Feburary 2020 (leap year)', () => {
+      expect(getCalendarMonth(2020, 1, { dateCreator })).to.deep.equal([
+        null, null, null, null, null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29'
+      ]);
+    });
+
+
+    it('returns calendar month for December 2019', () => {
+      expect(getCalendarMonth(2019, 11, { dateCreator })).to.deep.equal([
+        '19-11-1', '19-11-2', '19-11-3', '19-11-4', '19-11-5', '19-11-6', '19-11-7',
+        '19-11-8', '19-11-9', '19-11-10', '19-11-11', '19-11-12', '19-11-13', '19-11-14',
+        '19-11-15', '19-11-16', '19-11-17', '19-11-18', '19-11-19', '19-11-20', '19-11-21',
+        '19-11-22', '19-11-23', '19-11-24', '19-11-25', '19-11-26', '19-11-27', '19-11-28',
+        '19-11-29', '19-11-30', '19-11-31', null, null, null, null
+      ]);
+    });
+
+    it('returns calendar month for January 2020', () => {
+      expect(getCalendarMonth(2020, 0, { dateCreator })).to.deep.equal([
+        null, null, null, '20-0-1', '20-0-2', '20-0-3', '20-0-4',
+        '20-0-5', '20-0-6', '20-0-7', '20-0-8', '20-0-9', '20-0-10', '20-0-11',
+        '20-0-12', '20-0-13', '20-0-14', '20-0-15', '20-0-16', '20-0-17', '20-0-18',
+        '20-0-19', '20-0-20', '20-0-21', '20-0-22', '20-0-23', '20-0-24', '20-0-25',
+        '20-0-26', '20-0-27', '20-0-28', '20-0-29', '20-0-30', '20-0-31', null
+      ]);
+    });
+
+    it('returns calendar month for Feburary 2020 (leap year)', () => {
+      expect(getCalendarMonth(2020, 1, { dateCreator })).to.deep.equal([
+        null, null, null, null, null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29'
+      ]);
+    });
+
+    it('returns calendar month for Feburary 2019 (normal year)', () => {
+      expect(getCalendarMonth(2019, 1, { dateCreator })).to.deep.equal([
+        null, null, null, null, null, '19-1-1',
+        '19-1-2', '19-1-3', '19-1-4', '19-1-5', '19-1-6', '19-1-7', '19-1-8',
+        '19-1-9', '19-1-10', '19-1-11', '19-1-12', '19-1-13', '19-1-14', '19-1-15',
+        '19-1-16', '19-1-17', '19-1-18', '19-1-19', '19-1-20', '19-1-21', '19-1-22',
+        '19-1-23', '19-1-24', '19-1-25', '19-1-26', '19-1-27', '19-1-28', null, null
+      ]);
+    });
+
+    it('returns calendar month for March 2020', () => {
+      expect(getCalendarMonth(2020, 2, { dateCreator })).to.deep.equal([
+        '20-2-1', '20-2-2', '20-2-3', '20-2-4', '20-2-5', '20-2-6', '20-2-7',
+        '20-2-8', '20-2-9', '20-2-10', '20-2-11', '20-2-12', '20-2-13', '20-2-14',
+        '20-2-15', '20-2-16', '20-2-17', '20-2-18', '20-2-19', '20-2-20', '20-2-21',
+        '20-2-22', '20-2-23', '20-2-24', '20-2-25', '20-2-26', '20-2-27', '20-2-28',
+        '20-2-29', '20-2-30', '20-2-31', null, null, null, null
+      ]);
+    });
+
+    it('returns calendar month for April 2020', () => {
+      expect(getCalendarMonth(2020, 3, { dateCreator })).to.deep.equal([
+        null, null, null, '20-3-1', '20-3-2', '20-3-3', '20-3-4',
+        '20-3-5', '20-3-6', '20-3-7', '20-3-8', '20-3-9', '20-3-10', '20-3-11',
+        '20-3-12', '20-3-13', '20-3-14', '20-3-15', '20-3-16', '20-3-17', '20-3-18',
+        '20-3-19', '20-3-20', '20-3-21', '20-3-22', '20-3-23', '20-3-24', '20-3-25',
+        '20-3-26', '20-3-27', '20-3-28', '20-3-29', '20-3-30', null, null
+      ]);
+    });
+
+    it('returns calendar month for May 2020', () => {
+      expect(getCalendarMonth(2020, 4, { dateCreator })).to.deep.equal([
+        null, null, null, null, null, '20-4-1', '20-4-2',
+        '20-4-3', '20-4-4', '20-4-5', '20-4-6', '20-4-7', '20-4-8', '20-4-9',
+        '20-4-10', '20-4-11', '20-4-12', '20-4-13', '20-4-14', '20-4-15', '20-4-16',
+        '20-4-17', '20-4-18', '20-4-19', '20-4-20', '20-4-21', '20-4-22', '20-4-23',
+        '20-4-24', '20-4-25', '20-4-26', '20-4-27', '20-4-28', '20-4-29', '20-4-30',
+        '20-4-31', null, null, null, null, null, null
+      ]);
+    });
+
+    it('returns calendar month for June 2020', () => {
+      expect(getCalendarMonth(2020, 5, { dateCreator })).to.deep.equal([
+        null, '20-5-1', '20-5-2', '20-5-3', '20-5-4', '20-5-5', '20-5-6',
+        '20-5-7', '20-5-8', '20-5-9', '20-5-10', '20-5-11', '20-5-12', '20-5-13',
+        '20-5-14', '20-5-15', '20-5-16', '20-5-17', '20-5-18', '20-5-19', '20-5-20',
+        '20-5-21', '20-5-22', '20-5-23', '20-5-24', '20-5-25', '20-5-26', '20-5-27',
+        '20-5-28', '20-5-29', '20-5-30', null, null, null, null
+      ]);
+    });
+
+    it('returns calendar month for July 2020', () => {
+      expect(getCalendarMonth(2020, 6, { dateCreator })).to.deep.equal([
+        null, null, null, '20-6-1', '20-6-2', '20-6-3', '20-6-4',
+        '20-6-5', '20-6-6', '20-6-7', '20-6-8', '20-6-9', '20-6-10', '20-6-11',
+        '20-6-12', '20-6-13', '20-6-14', '20-6-15', '20-6-16', '20-6-17', '20-6-18',
+        '20-6-19', '20-6-20', '20-6-21', '20-6-22', '20-6-23', '20-6-24', '20-6-25',
+        '20-6-26', '20-6-27', '20-6-28', '20-6-29', '20-6-30', '20-6-31', null
+      ]);
+    });
+
+    it('returns calendar month for August 2020', () => {
+      expect(getCalendarMonth(2020, 7, { dateCreator })).to.deep.equal([
+        null, null, null, null, null, null, '20-7-1',
+        '20-7-2', '20-7-3', '20-7-4', '20-7-5', '20-7-6', '20-7-7', '20-7-8',
+        '20-7-9', '20-7-10', '20-7-11', '20-7-12', '20-7-13', '20-7-14', '20-7-15',
+        '20-7-16', '20-7-17', '20-7-18', '20-7-19', '20-7-20', '20-7-21', '20-7-22',
+        '20-7-23', '20-7-24', '20-7-25', '20-7-26', '20-7-27', '20-7-28', '20-7-29',
+        '20-7-30', '20-7-31', null, null, null, null, null
+      ]);
+    });
+
+    it('returns calendar month for September 2020', () => {
+      expect(getCalendarMonth(2020, 8, { dateCreator })).to.deep.equal([
+        null, null, '20-8-1', '20-8-2', '20-8-3', '20-8-4', '20-8-5',
+        '20-8-6', '20-8-7', '20-8-8', '20-8-9', '20-8-10', '20-8-11', '20-8-12',
+        '20-8-13', '20-8-14', '20-8-15', '20-8-16', '20-8-17', '20-8-18', '20-8-19',
+        '20-8-20', '20-8-21', '20-8-22', '20-8-23', '20-8-24', '20-8-25', '20-8-26',
+        '20-8-27', '20-8-28', '20-8-29', '20-8-30', null, null, null
+      ]);
+    });
+
+    it('returns calendar month for October 2020', () => {
+      expect(getCalendarMonth(2020, 9, { dateCreator })).to.deep.equal([
+        null, null, null, null, '20-9-1', '20-9-2', '20-9-3',
+        '20-9-4', '20-9-5', '20-9-6', '20-9-7', '20-9-8', '20-9-9', '20-9-10',
+        '20-9-11', '20-9-12', '20-9-13', '20-9-14', '20-9-15', '20-9-16', '20-9-17',
+        '20-9-18', '20-9-19', '20-9-20', '20-9-21', '20-9-22', '20-9-23', '20-9-24',
+        '20-9-25', '20-9-26', '20-9-27', '20-9-28', '20-9-29', '20-9-30', '20-9-31'
+      ]);
+    });
+
+    it('returns calendar month for November 2020', () => {
+      expect(getCalendarMonth(2020, 10, { dateCreator })).to.deep.equal([
+        '20-10-1', '20-10-2', '20-10-3', '20-10-4', '20-10-5', '20-10-6', '20-10-7',
+        '20-10-8', '20-10-9', '20-10-10', '20-10-11', '20-10-12', '20-10-13', '20-10-14',
+        '20-10-15', '20-10-16', '20-10-17', '20-10-18', '20-10-19', '20-10-20', '20-10-21',
+        '20-10-22', '20-10-23', '20-10-24', '20-10-25', '20-10-26', '20-10-27', '20-10-28',
+        '20-10-29', '20-10-30', null, null, null, null, null
+      ]);
+    });
+
+    it('returns calendar month for December 2020', () => {
+      expect(getCalendarMonth(2020, 11, { dateCreator })).to.deep.equal([
+        null, null, '20-11-1', '20-11-2', '20-11-3', '20-11-4', '20-11-5',
+        '20-11-6', '20-11-7', '20-11-8', '20-11-9', '20-11-10', '20-11-11', '20-11-12',
+        '20-11-13', '20-11-14', '20-11-15', '20-11-16', '20-11-17', '20-11-18', '20-11-19',
+        '20-11-20', '20-11-21', '20-11-22', '20-11-23', '20-11-24', '20-11-25', '20-11-26',
+        '20-11-27', '20-11-28', '20-11-29', '20-11-30', '20-11-31', null, null
+      ]);
+    });
+
+    it('fills previous month', () => {
+      expect(getCalendarMonth(2020, 11, { dateCreator, fillPreviousMonth: true })).to.deep.equal([
+        '20-10-29', '20-10-30', '20-11-1', '20-11-2', '20-11-3', '20-11-4', '20-11-5',
+        '20-11-6', '20-11-7', '20-11-8', '20-11-9', '20-11-10', '20-11-11', '20-11-12',
+        '20-11-13', '20-11-14', '20-11-15', '20-11-16', '20-11-17', '20-11-18', '20-11-19',
+        '20-11-20', '20-11-21', '20-11-22', '20-11-23', '20-11-24', '20-11-25', '20-11-26',
+        '20-11-27', '20-11-28', '20-11-29', '20-11-30', '20-11-31', null, null
+      ]);
+    });
+
+    it('fills previous month using last year for December', () => {
+      expect(getCalendarMonth(2020, 0, { dateCreator, fillPreviousMonth: true })).to.deep.equal([
+        '19-11-29', '19-11-30', '19-11-31', '20-0-1', '20-0-2', '20-0-3', '20-0-4', '20-0-5',
+        '20-0-6', '20-0-7', '20-0-8', '20-0-9', '20-0-10', '20-0-11', '20-0-12',
+        '20-0-13', '20-0-14', '20-0-15', '20-0-16', '20-0-17', '20-0-18', '20-0-19',
+        '20-0-20', '20-0-21', '20-0-22', '20-0-23', '20-0-24', '20-0-25', '20-0-26',
+        '20-0-27', '20-0-28', '20-0-29', '20-0-30', '20-0-31', null
+      ]);
+    });
+
+    it('fills next month', () => {
+      expect(getCalendarMonth(2020, 3, { dateCreator, fillNextMonth: true })).to.deep.equal([
+        null, null, null, '20-3-1', '20-3-2', '20-3-3', '20-3-4',
+        '20-3-5', '20-3-6', '20-3-7', '20-3-8', '20-3-9', '20-3-10', '20-3-11',
+        '20-3-12', '20-3-13', '20-3-14', '20-3-15', '20-3-16', '20-3-17', '20-3-18',
+        '20-3-19', '20-3-20', '20-3-21', '20-3-22', '20-3-23', '20-3-24', '20-3-25',
+        '20-3-26', '20-3-27', '20-3-28', '20-3-29', '20-3-30', '20-4-1', '20-4-2'
+      ]);
+    });
+
+    it('fills next month using next year for December', () => {
+      expect(getCalendarMonth(2020, 11, { dateCreator, fillNextMonth: true })).to.deep.equal([
+        null, null, '20-11-1', '20-11-2', '20-11-3', '20-11-4', '20-11-5',
+        '20-11-6', '20-11-7', '20-11-8', '20-11-9', '20-11-10', '20-11-11', '20-11-12',
+        '20-11-13', '20-11-14', '20-11-15', '20-11-16', '20-11-17', '20-11-18', '20-11-19',
+        '20-11-20', '20-11-21', '20-11-22', '20-11-23', '20-11-24', '20-11-25', '20-11-26',
+        '20-11-27', '20-11-28', '20-11-29', '20-11-30', '20-11-31', '21-0-1', '21-0-2'
+      ]);
+    });
+
+    it('shifts the week based on startDay', () => {
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 0 })).to.deep.equal([
+        null, null, null, null, null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29'
+      ]);
+
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 1 })).to.deep.equal([
+        null, null, null, null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29',
+        null
+      ]);
+
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 2 })).to.deep.equal([
+        null, null, null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29',
+        null, null
+      ]);
+
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 3 })).to.deep.equal([
+        null, null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29',
+        null, null, null
+      ]);
+
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 4 })).to.deep.equal([
+        null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29',
+        null, null, null, null
+      ]);
+
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 5 })).to.deep.equal([
+        null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29',
+        null, null, null, null, null
+      ]);
+
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 6 })).to.deep.equal([
+        '20-1-1', '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29',
+        null, null, null, null, null, null
+      ]);
+
+      expect(getCalendarMonth(2020, 1, { dateCreator, startDay: 7 })).to.deep.equal([
+        null, null, null, null, null, null, '20-1-1',
+        '20-1-2', '20-1-3', '20-1-4', '20-1-5', '20-1-6', '20-1-7', '20-1-8',
+        '20-1-9', '20-1-10', '20-1-11', '20-1-12', '20-1-13', '20-1-14', '20-1-15',
+        '20-1-16', '20-1-17', '20-1-18', '20-1-19', '20-1-20', '20-1-21', '20-1-22',
+        '20-1-23', '20-1-24', '20-1-25', '20-1-26', '20-1-27', '20-1-28', '20-1-29'
+      ]);
     });
   });
 
-  describe('.getCalendarForDate(date)', function () {
-    it('is the exact same function as .giveMeCalendarForDate', function () {
-      expect(subject.getCalendarForDate).to.eql(subject.giveMeCalendarForDate);
-    });
-  });
-
-  describe('.giveMeCalendarForDate(date)', function () {
-    it('returns an empty calendar if date is NOT an instance of Date', function () {
-      expect(subject.giveMeCalendarForDate('a')).to.eql(EMPTY_CALENDAR);
-      expect(subject.giveMeCalendarForDate(1)).to.eql(EMPTY_CALENDAR);
-    });
-
-    it('returns calendar for may 2017', function () {
-      expect(subject.giveMeCalendarForDate(date)).to.deep.eql(may2017Calendar);
-    });
-
-    it('returns calendar for may 2017 with the start weekday as Wednesday', function () {
-      var subject = new Calendator(WEEKDAYS.WED);
-      expect(subject.giveMeCalendarForDate(date)).to.deep.eql(may2017CalendarStartingWeekdayAsWednesday);
-    });
-  });
-
-  describe('.giveMeCalendarForMonthYear(month, year)', function () {
-    it('returns an empty calendar if month and year are not valid', function () {
-      expect(subject.giveMeCalendarForMonthYear('a', 'b')).to.eql(EMPTY_CALENDAR);
-      expect(subject.giveMeCalendarForMonthYear(20, year2017)).to.eql(EMPTY_CALENDAR);
-    });
-
-    it('returns calendar for may 2017', function () {
-      expect(subject.giveMeCalendarForMonthYear(may, year2017)).to.deep.eql(may2017Calendar);
-    });
-
-    it('returns calendar for may 2017 with the start weekday as Wednesday', function () {
-      var subject = new Calendator(WEEKDAYS.WED);
-      expect(subject.giveMeCalendarForMonthYear(may, year2017)).to.deep.eql(may2017CalendarStartingWeekdayAsWednesday);
-    });
-
-    it('returns custom calendar for may 2017 modified by dayCreationHandler', function () {
-      var subject = new Calendator(WEEKDAYS.SUN, dayCreationHandler);
-      expect(subject.giveMeCalendarForMonthYear(may, year2017)).to.deep.eql(may2017CalendarModifiedByDayCreationHandler);
-    });
-  });
-
-  describe('._buildCalendarForMonthYear(month, year)', function () {
-    it('creates a calendar for month and year', function () {
-      expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(may2017Calendar)
-
-      subject = new Calendator(WEEKDAYS.SUN, dayCreationHandler);
-      expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(may2017CalendarModifiedByDayCreationHandler)
-    });
-
-    it("fills out the first week and last week of the month with previous and next month's date", function () {
-      var subject = new Calendator(WEEKDAYS.SUN, null, true);
-      expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(may2017CalendarWithAprilAndJune)
-    });
-
-    it("fills out the first week and last week of the month with previous and next month's date using dayCreationHandler", function () {
-      var subject = new Calendator(WEEKDAYS.SUN, dayCreationHandler, true);
-      var expected = may2017CalendarModifiedByDayCreationHandler.slice();
-      var expectedFirstWeek = expected[0].slice();
-      expectedFirstWeek[0] = {
-        year: year2017,
-        month: may - 1,
-        currentDay: may2017CalendarWithAprilAndJune[0][0],
-        weekday: WEEKDAYS.SUN,
-        currentWeek: 1
-      };
-      var expectedLastWeek = expected[expected.length - 1].slice();
-      expectedLastWeek[4] = {
-        year: year2017,
-        month: may + 1,
-        currentDay: 1,
-        weekday: WEEKDAYS.THU,
-        currentWeek: 5
-      };
-      expectedLastWeek[5] = {
-        year: year2017,
-        month: may + 1,
-        currentDay: 2,
-        weekday: WEEKDAYS.FRI,
-        currentWeek: 5
-      };
-      expectedLastWeek[6] = {
-        year: year2017,
-        month: may + 1,
-        currentDay: 3,
-        weekday: WEEKDAYS.SAT,
-        currentWeek: 5
-      };
-
-      expected[0] = expectedFirstWeek;
-      expected[expected.length - 1 ] = expectedLastWeek;
-
-      expect(subject._buildCalendarForMonthYear(may, year2017)).to.deep.eql(expected)
-    });
-  });
-
-  describe('._cacheCalendar(month, year, calendarToBeCached)', function () {
-    it('caches the calendar for month and year', function () {
-      var subject = new Calendator();
-      expect(subject._cachedCalendars).to.eql(EMPTY_CACHED_CALENDARS);
-      subject._cacheCalendar(may, year2017, may2017Calendar);
-      expect(subject._cachedCalendars).to.deep.eql(cachedCalendars);
-      subject._cacheCalendar(may, year2017, may2017Calendar);
-      expect(subject._cachedCalendars).to.deep.eql(cachedCalendars);
-    });
-  });
-
-  describe('._getCachedCalendarForMonthYear(month, year)', function () {
-    it('returns the cached calendar for month and year', function () {
-      var subject = new Calendator();
-      expect(subject._getCachedCalendarForMonthYear(may, year2017)).to.be.null;
-      subject._cachedCalendars = {2017: {}};
-      expect(subject._getCachedCalendarForMonthYear(may, year2017)).to.be.null;
-      subject._cachedCalendars = cachedCalendars;
-      expect(subject._getCachedCalendarForMonthYear(may, year2017)).to.deep.eql(may2017Calendar);
-    });
-  });
-
-  describe('._offsetByStartWeekday', function () {
-    it('offsets the weekday by this._startWeekday', function () {
-      var subject = new Calendator(WEEKDAYS.WED);
-      expect(subject._offsetByStartWeekday(WEEKDAYS.SUN)).to.equal(WEEKDAYS.THU);
-      expect(subject._offsetByStartWeekday(WEEKDAYS.MON)).to.equal(WEEKDAYS.FRI);
-      expect(subject._offsetByStartWeekday(WEEKDAYS.TUE)).to.equal(WEEKDAYS.SAT);
-      expect(subject._offsetByStartWeekday(WEEKDAYS.WED)).to.equal(WEEKDAYS.SUN);
-      expect(subject._offsetByStartWeekday(WEEKDAYS.THU)).to.equal(WEEKDAYS.MON);
-      // I think we get the point...
+  describe('.sliceToWeeks()', () => {
+    it('returns calendar month for August 2020', () => {
+      const calendarMonth = getCalendarMonth(2020, 7, { dateCreator });
+      expect(sliceToWeeks(calendarMonth)).to.deep.equal([
+        [null, null, null, null, null, null, '20-7-1'],
+        ['20-7-2', '20-7-3', '20-7-4', '20-7-5', '20-7-6', '20-7-7', '20-7-8'],
+        ['20-7-9', '20-7-10', '20-7-11', '20-7-12', '20-7-13', '20-7-14', '20-7-15'],
+        ['20-7-16', '20-7-17', '20-7-18', '20-7-19', '20-7-20', '20-7-21', '20-7-22'],
+        ['20-7-23', '20-7-24', '20-7-25', '20-7-26', '20-7-27', '20-7-28', '20-7-29'],
+        ['20-7-30', '20-7-31', null, null, null, null, null]
+      ]);
     });
   });
 });
